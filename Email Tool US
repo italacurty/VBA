@@ -1,0 +1,319 @@
+Private Sub CommandButton1_Click()
+
+Set objeto_outlook = CreateObject("Outlook.Application")
+
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim LR As Long
+    Dim count_control As Integer
+    Dim Mssg As String
+    Dim str_To_Compare As String
+    Set arr_check_values = CreateObject("System.Collections.ArrayList")
+    Set wb = ActiveWorkbook
+    Set ws = ActiveSheet
+    Dim espacodez As String
+
+    espacodez = "&nbsp"
+
+    For I = 1 To 10
+        espacodez = espacodez & "&nbsp;"
+    Next I
+    
+    
+    Last_Row_Index = ThisWorkbook.Sheets("Interface").Cells(Rows.Count, 8).End(xlUp).Row
+    
+
+    For temp_row = 11 To Last_Row_Index
+        Set Email = objeto_outlook.createitem(0)
+        With Email
+        count_control = 1
+        
+        str_To_Compare = CStr(ThisWorkbook.Sheets("Interface").Cells(temp_row, 8))
+        If arr_check_values.Contains(str_To_Compare) Then
+            
+        Else
+            arr_check_values.Add (CStr(ThisWorkbook.Sheets("Interface").Cells(temp_row, 8)))
+            Set arr_match_values = CreateObject("System.Collections.ArrayList")
+            arr_match_values.Add temp_row
+            
+            For inside_row = (temp_row + count_control) To Last_Row_Index
+              
+                If (ThisWorkbook.Sheets("Interface").Cells(temp_row, 8) = Cells(inside_row, 8)) Then
+                
+                    arr_match_values.Add inside_row
+                    
+                End If
+                
+                count_control = count_control + 1
+            Next
+              
+            'Mssg = "Olá," & Space(1) & ThisWorkbook.Sheets("Interface").Cells(temp_row, 2).Value & "<br></br>"
+        
+        'For Each Index In arr_match_values
+           'Mssg = Mssg
+        'Next
+        
+        Email.display
+        Email.To = ThisWorkbook.Sheets("Interface").Cells(temp_row, 3).Value
+        Email.CC = "us-receivables@vtex.com"
+                
+        
+        If UserForm1.OptionButton1.Value = True Then
+        
+        Email.Subject = "VTEX Invoice #" & ThisWorkbook.Sheets("Interface").Cells(temp_row, 4).Value
+        Email.HTMLBody = "Hello," & "<br><br></br></br>" _
+        & "We would like to inform you that a new invoice has been generated and is now available for payment. Please log in to your account or refer to the attached document to view the invoice." & "<br><br></br></br>" _
+        & "Please ensure that the payment is made on time to avoid any inconvenience." & "<br><br></br></br>" _
+        & "If you have any questions or concerns regarding the invoice or the payment terms, please do not hesitate to contact us." & "<br><br></br></br>" _
+        & "Best Regards," _
+        & .HTMLBody
+        Email.Attachments.Add ("C:\Users\itala\Documents\US Reports Local\Arquivos Locais\Tools\Invoices\" & ThisWorkbook.Sheets("Interface").Cells(temp_row, 9) & ".pdf")
+
+
+        End If
+        
+        
+        If UserForm1.OptionButton2.Value = True Then
+        
+        Email.Subject = "Ajuste de inflação - Mensalidade VTEX - " & ThisWorkbook.Sheets("Interface").Cells(temp_row, 2).Value
+        Email.HTMLBody = "Prezado cliente," & "<br><br></br></br>" _
+        & "Com o desejo de impulsionar os negócios dos nossos parceiros e apoiar cada vez mais o crescimento sustentável e o fortalecimento da transformação digital no comércio, a VTEX reafirma seu comprometimento com o constante aprimoramento da qualidade do seu serviço e produto." & "<br><br></br></br>" _
+        & "Contudo, para que sigamos crescendo de forma sustentável, com o contínuo investimento no desenvolvimento de soluções de comércio diferenciadas, começaremos a atualizar as taxas de mensalidade de acordo com o índice de reajuste previsto no nosso Contrato. Por este motivo, chamamos a sua atenção para a previsão do reajuste em seu orçamento do exercício de 2022. Vale pontuar que, mesmo com o reajuste, o valor da mensalidade ainda ficará significativamente abaixo das taxas de mensalidade da nova tabela comercial da VTEX." & "<br><br></br></br>" _
+        & "Além disso, não iremos efetuar nenhuma cobrança retroativa desse reajuste referente aos últimos anos. Com sua parceria, fomos capazes de contornar um dos anos mais desafiadores da história, gerando negócios de impacto que permitiram que o digital se transformasse em peça chave dos modelos de negócio verdadeiramente longevos." & "<br><br></br></br>" _
+        & "Time VTEX" _
+        & .HTMLBody
+        
+
+        End If
+        
+             
+        '1st overdue message
+        If UserForm1.OptionButton4.Value = True Then
+        
+        Email.Subject = "Outstanding Invoice(s) - " & ThisWorkbook.Sheets("Interface").Cells(temp_row, 8).Value
+        
+        Mssg = "Hello" & Space(1) & ThisWorkbook.Sheets("Interface").Cells(temp_row, 2).Value & "," & "<br><br></br></br>" & Chr(10) & Chr(10) & "According to our records, the following invoice(s) is/are currently past due:" & "<br><br></br></br>" & Chr(10) & Chr(10) _
+        & "Invoice No." & espacodez & "Invoice Amount" & espacodez & "Invoice Link" & espacodez & "" & espacodez & "" & Chr(10) & "<br></br>"
+        
+        For Each Index In arr_match_values
+           Mssg = Mssg & ThisWorkbook.Sheets("Interface").Cells(Index, 4).Value & espacodez & espacodez & "USD " & ThisWorkbook.Sheets("Interface").Cells(Index, 5).Value & Space(16) & espacodez & "<a href=" & ThisWorkbook.Sheets("Interface").Cells(Index, 6) & "> " & ThisWorkbook.Sheets("Interface").Cells(Index, 6) & "</a>" & Chr(10) & Space(16) & espacodez & "" & espacodez & "<a href=" & ThisWorkbook.Sheets("Interface").Cells(Index, 7) & "> " & ThisWorkbook.Sheets("Interface").Cells(Index, 7) & "</a>" & Chr(10) & "<br><br></br></br>"
+        Next
+                
+        For Each Index In arr_match_values
+        
+        hyperlinkconta = "http://" & ThisWorkbook.Sheets("Interface").Cells(Index, 8) & ".myvtex.com/admin/billing/invoices"
+        
+        msgatual = Mssg & Chr(10) & "I kindly request that you make the necessary arrangements to settle the outstanding balance as soon as possible." & Chr(10) & "<br><br></br></br>" & " For security reasons, the invoice link can only be accessed after logging in to your admin using your registered email address. Once you have logged in, the link will open the PDF version of your invoice. You can also access all your invoices directly on the billing page at: " _
+        & "<a href=http://" & ThisWorkbook.Sheets("Interface").Cells(Index, 8) & ".myvtex.com/admin/billing/invoices> http://" & ThisWorkbook.Sheets("Interface").Cells(Index, 8) & ".myvtex.com/admin/billing/invoices </a>" & "<br><br></br></br>" & Chr(10) _
+        & Chr(10) & "<b>If you have already made the payment, please provide proof of payment, so that we may verify and update our records accordingly.</b>" & Chr(10) & Chr(10) _
+        & "<br><br></br></br>" & "Best Regards," & Chr(10) & "<br></br>" & "VTEX Finance Team"
+
+        
+        
+        Next
+    
+        Email.HTMLBody = msgatual & "<br><br></br></br>" & _
+        .HTMLBody
+        
+
+        End If
+        
+        ' Payment Reminder - Due soon
+        If UserForm1.OptionButton3.Value = True Then
+        
+        Email.Subject = "Payment Reminder: Invoice(s) Due Soon - " & ThisWorkbook.Sheets("Interface").Cells(temp_row, 8).Value
+        
+        Mssg = "Hello" & Space(1) & ThisWorkbook.Sheets("Interface").Cells(temp_row, 2).Value & "," & "<br><br></br></br>" & Chr(10) & Chr(10) & "I hope this email finds you well." & "<br><br></br></br>" & Chr(10) & Chr(10) & "I am writing to remind you that the following invoice(s) is/are due for payment soon:" & "<br><br></br></br>" & Chr(10) & Chr(10) _
+        & "Invoice No." & espacodez & "Invoice Amount" & espacodez & "Due Date" & espacodez & "" & espacodez & "" & Chr(10) & "<br></br>"
+        
+        For Each Index In arr_match_values
+           Mssg = Mssg & ThisWorkbook.Sheets("Interface").Cells(Index, 4).Value & espacodez & espacodez & "USD " & ThisWorkbook.Sheets("Interface").Cells(Index, 5).Value & Space(16) & espacodez & ThisWorkbook.Sheets("Interface").Cells(Index, 7).Value & Chr(10) & "<br><br></br></br>"
+        Next
+                
+        For Each Index In arr_match_values
+        
+        hyperlinkconta = "http://" & ThisWorkbook.Sheets("Interface").Cells(Index, 8) & ".myvtex.com/admin/billing/invoices"
+        
+        msgatual = Mssg & Chr(10) & "Could you please confirm if everything is on track for payment by the due date?" & Chr(10) & "<br><br></br></br>" & " If you have any questions or require assistance with the payment process, please don't hesitate to contact us." & "<br><br></br></br>" & Chr(10) & Chr(10) & "Best Regards," & Chr(10) & "<br></br>" & "VTEX Finance Team"
+
+        Next
+    
+        Email.HTMLBody = msgatual & "<br><br></br></br>" & _
+        .HTMLBody
+        
+
+        End If
+        
+        If UserForm1.OptionButton6.Value = True Then
+        
+        Email.Subject = "[VTEX] Fatura gerada - " & ThisWorkbook.Sheets("Interface").Cells(temp_row, 8).Value
+        
+        Mssg = "Olá" & Space(1) & ThisWorkbook.Sheets("Interface").Cells(temp_row, 2).Value & "," & "<br><br></br></br>" & Chr(10) & Chr(10) & "A seguinte fatura acaba de ser gerada: " & "<br><br></br></br>" & Chr(10) & Chr(10) _
+        & "SerialNfSe" & espacodez & "Valor do Serviço" & espacodez & "Link da NFse" & espacodez & "//" & espacodez & "Link do Boleto" & Chr(10) & "<br></br>"
+        
+        For Each Index In arr_match_values
+           Mssg = Mssg & ThisWorkbook.Sheets("Interface").Cells(Index, 4).Value & espacodez & espacodez & "R$" & ThisWorkbook.Sheets("Interface").Cells(Index, 5).Value & Space(16) & espacodez & "<a href=" & ThisWorkbook.Sheets("Interface").Cells(Index, 6) & "> " & ThisWorkbook.Sheets("Interface").Cells(Index, 6) & "</a>" & Chr(10) & Space(16) & espacodez & "//" & espacodez & "<a href=" & ThisWorkbook.Sheets("Interface").Cells(Index, 7) & "> " & ThisWorkbook.Sheets("Interface").Cells(Index, 7) & "</a>" & Chr(10) & "<br><br></br></br>"
+        Next
+                
+        For Each Index In arr_match_values
+        
+        hyperlinkconta = "http://" & ThisWorkbook.Sheets("Interface").Cells(Index, 8) & ".myvtex.com/admin/billing/invoices"
+        
+        msgatual = Mssg & Chr(10) & "Nesse caso, você mesmo pode acessá-la no seu Módulo Faturas em: " _
+        & "<a href=http://" & Cells(Index, 8) & ".myvtex.com/admin/billing/invoices> http://" & Cells(Index, 8) & ".myvtex.com/admin/billing/invoices </a>" & "<br><br></br></br>" & Chr(10) _
+        & "Atenciosamente," & Chr(10) & "<br></br>" & "Financeiro - VTEX"
+        
+        
+        Next
+    
+        Email.HTMLBody = msgatual & "<br><br></br></br>" & _
+        .HTMLBody
+        
+        End If
+        
+        If UserForm1.OptionButton7.Value = True Then
+        
+        Email.Subject = "[VTEX] Cobrança da tabela padrão por não renovação do Voucher - " & ThisWorkbook.Sheets("Interface").Cells(temp_row, 8).Value
+        
+        Email.HTMLBody = "<b> VTEX BRASIL TECNOLOGIA PARA E-COMMERCE LTDA </b>" _
+        & "<br></br>" & "Av. Brigadeiro Faria Lima, 4440, 10º andar." _
+        & "<br></br>" & "Itaim Bibi - São Paulo/SP" _
+        & "<br></br>" & "CEP: 04538-132" _
+        & "<br></br>" & "<br></br>" & "São Paulo, " & ThisWorkbook.Sheets("Interface").Cells(temp_row, 9).Text _
+        & "<br></br>" & "<br></br>" & "Olá" & Space(1) & "<b>" & Cells(temp_row, 2).Value & "</b>" & "," _
+        & "<br></br>" & "<br></br>" & "A presente tem o objeto de lhes notificar que identificamos que não houve a renovação do Voucher previsto no contrato assinado entre <b> VTEX </b> e " & "<b>" & Cells(temp_row, 2).Value & "</b>" & " que regula a autorização de uso e prestação de serviços de suporte e manutenção para o Software desenvolvido pela <b> VTEX </b> para soluções de ecommerce (doravante denominado o &quot;Contrato&quot;). Como a manutenção do Voucher é uma condição para acessar as condições comerciais de Take Rate oferecidas a " & "<b>" & Cells(temp_row, 2).Value & "</b>" & ", a <b> VTEX </b> voltará a realizar a cobrança do Take Rate de acordo com nossa tabela padrão de preços para o plano On Demand, a saber:" _
+        & "<br></br>" & "<br></br>" & "&bull; 2,50% (dois e meio por cento) do total de pedidos autorizados através da Plataforma VTEX em loja própria (&quot;Ongoing fee B2C&quot;); e " _
+        & "<br></br>" & "&bull; 1,30%* (um vírgula três por cento) do total de pedidos autorizados através da Plataforma VTEX em Outros Canais ou caso o cliente seja um marketplace puro (&quot;Take Rate OC&quot;)." _
+        & "<br></br>" & "<font size=1> * A integração com Outros Canais cujos pedidos autorizados sejam processados através da Plataforma VTEX tem um custo intrínseco adicional para o uso extra da infraestrutura fornecida pela VTEX, razão pela qual em tais casos a VTEX cobrará o Take Rate OC pelo canal que realizou a venda e pelo canal que entregou a venda, cobrando o dobro do Take Rate OC da Contratante. </font>" _
+        & "<br></br>" & "<br></br>" & "Caso " & "<b>" & Cells(temp_row, 2).Value & "</b>" & " deseje renovar o Voucher previsto no Contrato e evitar a cobrança do Take Rate do plano On Demand, pedimos que entre em contato com a <b> VTEX </b> o mais rápido possível para reverter essa situação." _
+        & "<br></br>" & "<br></br>" & "Ficamos atentos a qualquer contato." _
+        & .HTMLBody
+        
+        End If
+        
+        If UserForm1.OptionButton8.Value = True Then
+        
+        Email.Subject = "[VTEX] Alerta de vencimento - " & ThisWorkbook.Sheets("Interface").Cells(temp_row, 8).Value
+        
+        Mssg = "Olá" & Space(1) & ThisWorkbook.Sheets("Interface").Cells(temp_row, 2).Value & "," & "<br><br></br></br>" & Chr(10) & Chr(10) & "A(s) seguinte(s) fatura(s) está(ão) próxima(s) ao vencimento: " & "<br><br></br></br>" & Chr(10) & Chr(10) _
+        & "SerialNfSe" & espacodez & "Valor do Serviço" & espacodez & "Link da NFse" & espacodez & "//" & espacodez & "Link do Boleto" & Chr(10) & "<br></br>"
+        
+        For Each Index In arr_match_values
+           Mssg = Mssg & ThisWorkbook.Sheets("Interface").Cells(Index, 4).Value & espacodez & espacodez & "R$" & ThisWorkbook.Sheets("Interface").Cells(Index, 5).Value & Space(16) & espacodez & "<a href=" & ThisWorkbook.Sheets("Interface").Cells(Index, 6) & "> " & ThisWorkbook.Sheets("Interface").Cells(Index, 6) & "</a>" & Chr(10) & Space(16) & espacodez & "//" & espacodez & "<a href=" & ThisWorkbook.Sheets("Interface").Cells(Index, 7) & "> " & ThisWorkbook.Sheets("Interface").Cells(Index, 7) & "</a>" & Chr(10) & "<br><br></br></br>"
+        Next
+                
+        For Each Index In arr_match_values
+        
+        hyperlinkconta = "http://" & ThisWorkbook.Sheets("Interface").Cells(Index, 8) & ".myvtex.com/admin/billing/invoices"
+        
+        msgatual = Mssg & Chr(10) & "Nesse caso, você mesmo pode acessá-la(s) no seu Módulo Faturas em: " _
+        & "<a href=http://" & Cells(Index, 8) & ".myvtex.com/admin/billing/invoices> http://" & Cells(Index, 8) & ".myvtex.com/admin/billing/invoices </a>" & "<br><br></br></br>" & Chr(10) _
+        & "Atenciosamente," & Chr(10) & "<br></br>" & "<br></br>" & "Financeiro - VTEX"
+        
+        
+        Next
+    
+        Email.HTMLBody = msgatual & "<br><br></br></br>" & _
+        .HTMLBody
+        
+        End If
+        
+        
+      Email.send
+            
+End If
+        End With
+       
+    Next
+
+End Sub
+
+
+Private Sub OptionButton2_Click()
+
+If UserForm1.OptionButton2.Value = True Then
+
+UserForm1.TextBox1.Text = ThisWorkbook.Sheets("Textos_Base").Cells(5, 2)
+
+
+End If
+
+End Sub
+
+
+Private Sub OptionButton1_Click()
+
+If UserForm1.OptionButton1.Value = True Then
+
+UserForm1.TextBox1.Text = ThisWorkbook.Sheets("Textos_Base").Cells(6, 2)
+         
+
+End If
+
+End Sub
+
+Private Sub OptionButton3_Click()
+
+If UserForm1.OptionButton3.Value = True Then
+
+UserForm1.TextBox1.Text = ThisWorkbook.Sheets("Textos_Base").Cells(10, 2)
+         
+
+End If
+
+End Sub
+
+Private Sub OptionButton4_Click()
+
+If UserForm1.OptionButton4.Value = True Then
+
+UserForm1.TextBox1.Text = ThisWorkbook.Sheets("Textos_Base").Cells(11, 2)
+         
+
+End If
+
+End Sub
+
+Private Sub OptionButton5_Click()
+
+If UserForm1.OptionButton5.Value = True Then
+
+UserForm1.TextBox1.Text = ThisWorkbook.Sheets("Textos_Base").Cells(7, 2)
+         
+
+End If
+
+End Sub
+
+Private Sub OptionButton6_Click()
+
+If UserForm1.OptionButton6.Value = True Then
+
+UserForm1.TextBox1.Text = ThisWorkbook.Sheets("Textos_Base").Cells(9, 2)
+         
+
+End If
+
+End Sub
+
+Private Sub OptionButton7_Click()
+
+If UserForm1.OptionButton7.Value = True Then
+
+UserForm1.TextBox1.Text = ThisWorkbook.Sheets("Textos_Base").Cells(8, 2)
+         
+
+End If
+
+End Sub
+
+Private Sub OptionButton8_Click()
+
+If UserForm1.OptionButton8.Value = True Then
+
+UserForm1.TextBox1.Text = ThisWorkbook.Sheets("Textos_Base").Cells(12, 2)
+         
+
+End If
+
+End Sub
